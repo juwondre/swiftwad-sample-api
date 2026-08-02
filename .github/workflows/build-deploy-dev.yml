@@ -1,0 +1,52 @@
+name: build-and-deploy-dev
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 905418331655.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPO: sample-api
+
+jobs:
+  build-push-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assume ECR push role via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::905418331655:role/gh-actions-swiftwad-sample-api
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        run: |
+          IMAGE="$ECR_REGISTRY/$ECR_REPO:${GITHUB_SHA}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Checkout gitops repo
+        uses: actions/checkout@v4
+        with:
+          repository: juwondre/swiftwad-gitops
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          path: gitops
+
+      - name: Bump dev image tag
+        run: |
+          cd gitops
+          yq -i ".image.tag = \"${GITHUB_SHA}\"" envs/dev/sample-api.yaml
+          git config user.name "sample-api-ci"
+          git config user.email "ci@swiftwad.local"
+          git add envs/dev/sample-api.yaml
+          git commit -m "sample-api dev -> ${GITHUB_SHA:0:12}"
+          git push
