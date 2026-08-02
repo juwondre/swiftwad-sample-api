@@ -34,20 +34,5 @@ jobs:
           IMAGE="$ECR_REGISTRY/$ECR_REPO:${GITHUB_SHA}"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
-
-      - name: Checkout gitops repo
-        uses: actions/checkout@v4
-        with:
-          repository: juwondre/swiftwad-gitops
-          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
-          path: gitops
-
-      - name: Bump dev image tag
-        run: |
-          cd gitops
-          yq -i ".image.tag = \"${GITHUB_SHA}\"" envs/dev/sample-api.yaml
-          git config user.name "sample-api-ci"
-          git config user.email "ci@swiftwad.local"
-          git add envs/dev/sample-api.yaml
-          git commit -m "sample-api dev -> ${GITHUB_SHA:0:12}"
-          git push
+      # Deployment is Kargo's job from here: it watches ECR and promotes
+      # through dev -> staging via the gitops repo.
