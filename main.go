@@ -42,7 +42,7 @@ func main() {
 			"version":  os.Getenv("APP_VERSION"),
 			"env":      os.Getenv("APP_ENV"),
 			"hostname": hostname,
-			"motto":    "vendors ship code, kargo ships environments",
+			"motto":    "built, gated, and shipped — all through one green button",
 		})
 	})
 
