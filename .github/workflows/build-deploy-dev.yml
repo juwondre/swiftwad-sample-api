@@ -9,10 +9,13 @@ permissions:
   id-token: write
   contents: read
 
+# Environment wiring comes from repo variables (Settings -> Secrets and
+# variables -> Actions -> Variables), so new environments configure instead of
+# editing this file: AWS_REGION, ECR_REGISTRY, ECR_REPO, CI_ROLE_ARN.
 env:
-  AWS_REGION: us-east-1
-  ECR_REGISTRY: 905418331655.dkr.ecr.us-east-1.amazonaws.com
-  ECR_REPO: sample-api
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+  ECR_REPO: ${{ vars.ECR_REPO }}
 
 jobs:
   build-push-bump:
@@ -23,7 +26,7 @@ jobs:
       - name: Assume ECR push role via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::905418331655:role/gh-actions-swiftwad-sample-api
+          role-to-assume: ${{ vars.CI_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
