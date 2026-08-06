@@ -15,10 +15,6 @@ import (
 var ready atomic.Bool
 
 func main() {
-	// DRILL: deliberate startup failure to prove the platform contains a bad
-	// vendor build in dev without touching staging. Reverted immediately after.
-	log.Fatal("drill: simulated fatal startup error")
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
